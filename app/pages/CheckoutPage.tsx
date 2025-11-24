@@ -196,7 +196,7 @@ export function CheckoutPage() {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="john@example.com"
-                        required
+                        // required
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -207,7 +207,7 @@ export function CheckoutPage() {
                         type="tel"
                         value={formData.phone}
                         onChange={handleChange}
-                        placeholder="(555) 123-4567"
+                        placeholder="03122*****"
                         required
                       />
                     </div>
@@ -238,7 +238,7 @@ export function CheckoutPage() {
                             name="city"
                             value={formData.city}
                             onChange={handleChange}
-                            placeholder="New York"
+                            placeholder="karachi"
                             required={deliveryType === "delivery"}
                           />
                         </div>
@@ -250,7 +250,7 @@ export function CheckoutPage() {
                             value={formData.zipCode}
                             onChange={handleChange}
                             placeholder="10001"
-                            required={deliveryType === "delivery"}
+                            // required={deliveryType === "delivery"}
                           />
                         </div>
                       </div>
@@ -258,7 +258,7 @@ export function CheckoutPage() {
                   </Card>
                 )}
 
-                {/* Payment Information */}
+                {/* Payment Information
                 <Card className="p-6">
                   <h3 className="mb-4">Payment Information</h3>
                   <div className="space-y-4">
@@ -271,34 +271,34 @@ export function CheckoutPage() {
                         onChange={handleChange}
                         placeholder="1234 5678 9012 3456"
                         required
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="cardExpiry">Expiry Date</Label>
-                        <Input
-                          id="cardExpiry"
-                          name="cardExpiry"
-                          value={formData.cardExpiry}
-                          onChange={handleChange}
-                          placeholder="MM/YY"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="cardCVC">CVC</Label>
-                        <Input
-                          id="cardCVC"
-                          name="cardCVC"
-                          value={formData.cardCVC}
-                          onChange={handleChange}
-                          placeholder="123"
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+                    //   /> */}
+                    {/* // </div>
+                    // <div className="grid grid-cols-2 gap-4">
+                    //   <div>
+                    //     <Label htmlFor="cardExpiry">Expiry Date</Label>
+                    //     <Input */}
+                    {/* //       id="cardExpiry"
+                    //       name="cardExpiry"
+                    //       value={formData.cardExpiry}
+                    //       onChange={handleChange}
+                    //       placeholder="MM/YY"
+                    //       required
+                    //     />
+                    //   </div> */}
+                    {/* //   <div>
+                    //     <Label htmlFor="cardCVC">CVC</Label>
+                    //     <Input */}
+                    {/* //       id="cardCVC"
+                  //         name="cardCVC"
+                  //         value={formData.cardCVC}
+                  //         onChange={handleChange}
+                  //         placeholder="123"
+                  //         required
+                  //       /> */}
+                  {/* //     </div>
+                  //   </div>
+                  // </div>
+                // </Card> */}
 
                 <Button
                   type="submit"
