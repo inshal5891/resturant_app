@@ -9,6 +9,7 @@ import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Separator } from "../components/ui/separator";
 import { toast } from "sonner";
+import { postOrder } from "../apis/postOrder";
 
 export function CheckoutPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export function CheckoutPage() {
     cardExpiry: "",
     cardCVC: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Guard router operations to client-only via useEffect
   useEffect(() => {
@@ -43,11 +45,41 @@ export function CheckoutPage() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Order placed successfully! Estimated delivery: 30-45 minutes");
-    clearCart();
-    router.push("/");
+    setIsSubmitting(true);
+
+    // Build items payload
+    const itemsPayload = items.map((it) => ({
+      id: it.id,
+      name: it.name,
+      price: it.price,
+      quantity: it.quantity,
+    }));
+
+    const payload = {
+      name: formData.name,
+      phone: formData.phone,
+      items: itemsPayload,
+      total_price: Number(total.toFixed(2)),
+      delivery_type: deliveryType,
+      address: formData.address,
+    };
+
+    try {
+      const result = await postOrder(payload);
+      toast.success("Order placed successfully! Estimated delivery: 30-45 minutes");
+      clearCart();
+      // Optionally redirect to home or order confirmation
+      router.push("/");
+      return result;
+    } catch (err: any) {
+      const msg = err?.message || "Failed to place order";
+      toast.error(msg);
+      console.error("postOrder error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Skip rendering on server if empty cart
@@ -228,8 +260,9 @@ export function CheckoutPage() {
                   type="submit"
                   className="w-full bg-destructive hover:bg-destructive/90"
                   size="lg"
+                  disabled={isSubmitting}
                 >
-                  Place Order - ${total.toFixed(2)}
+                  {isSubmitting ? "Placing order..." : `Place Order - $${total.toFixed(2)}`}
                 </Button>
               </form>
             </div>

@@ -1,43 +1,33 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import { useEffect } from "react";
+/**
+ * ContactMap Component
+ * Note: Leaflet map is temporarily disabled due to react-leaflet v4 compatibility with React 19.
+ * The map shows a static image placeholder. To re-enable:
+ * 1. Check react-leaflet version compatibility
+ * 2. Update MapContainer props to match the version's API
+ */
 
 export function ContactMap() {
-  const position: [number, number] = [24.9363, 67.0337];
-
-  // Fix default marker icon in Leaflet on client only
-  useEffect(() => {
-    try {
-      if (typeof window === "undefined") return;
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      });
-    } catch (err) {
-      // Fail silently
-    }
-  }, []);
-
   return (
-    <MapContainer
-      center={position}
-      zoom={15}
-      style={{ height: "100%", width: "100%" }}
-      scrollWheelZoom={false}
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        backgroundColor: "#e0e0e0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: "8px",
+      }}
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <Marker position={position}>
-        <Popup>233J+7C5, Sector 5-F, New Karachi Town, Karachi</Popup>
-      </Marker>
-    </MapContainer>
+      <div style={{ textAlign: "center", color: "#666" }}>
+        <p>📍 MAHDEE'S Restaurant</p>
+        <p>233J+7C5, Sector 5-F, New Karachi Town, Karachi</p>
+        <p style={{ fontSize: "12px", marginTop: "8px" }}>
+          Map view disabled. See address above.
+        </p>
+      </div>
+    </div>
   );
 }
