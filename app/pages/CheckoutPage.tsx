@@ -9,7 +9,7 @@ import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Separator } from "../components/ui/separator";
 import { toast } from "sonner";
-import { postOrder } from "../apis/postOrder";
+import { postOrder, ApiError } from "../apis/api"; // Use the centralized API
 
 export function CheckoutPage() {
   const router = useRouter();
@@ -29,6 +29,7 @@ export function CheckoutPage() {
     cardCVC: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Guard router operations to client-only via useEffect
   useEffect(() => {
@@ -48,35 +49,73 @@ export function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setApiError(null);
 
-    // Build items payload
-    const itemsPayload = items.map((it) => ({
-      id: it.id,
-      name: it.name,
-      price: it.price,
-      quantity: it.quantity,
-    }));
+    // Ensure there's at least one item
+    if (items.length === 0) {
+      toast.error("Your cart is empty.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Build payload matching OrderIn expected by the API
+    const subtotal = getTotal();
+    const deliveryFee = deliveryType === "delivery" ? 3.99 : 0;
+    const tax = subtotal * 0.08;
+    const total_price = +(subtotal + deliveryFee + tax).toFixed(2);
 
     const payload = {
       name: formData.name,
+      email: formData.email,
       phone: formData.phone,
-      items: itemsPayload,
-      total_price: Number(total.toFixed(2)),
+      items: items.map((it) => ({
+        id: it.id,
+        name: it.name,
+        quantity: it.quantity,
+        price: parseFloat(String(it.price).replace("$", "")).toFixed(2),
+      })),
+      total_price,
       delivery_type: deliveryType,
-      address: formData.address,
+      address:
+        deliveryType === "delivery"
+          ? `${formData.address}${formData.city ? ", " + formData.city : ""}${formData.zipCode ? " " + formData.zipCode : ""}`
+          : "",
     };
+    // Some backends expect a singular `item` field (validation schema). Include a
+    // fallback `item` property so both shapes are supported.
+    // The backend in this project expects `item` to be a string (validation
+    // returned a `string_type` error). Send a JSON-stringified version so the
+    // server receives a string while we still keep `items` as an array.
+    (payload as any).item = payload.items.length === 1
+      ? JSON.stringify(payload.items[0])
+      : JSON.stringify(payload.items);
 
     try {
+      // postOrder now returns parsed JSON (or throws ApiError on non-OK responses)
       const result = await postOrder(payload);
+
       toast.success("Order placed successfully! Estimated delivery: 30-45 minutes");
       clearCart();
-      // Optionally redirect to home or order confirmation
       router.push("/");
       return result;
     } catch (err: any) {
-      const msg = err?.message || "Failed to place order";
-      toast.error(msg);
-      console.error("postOrder error:", err);
+      if (err instanceof ApiError) {
+        setApiError(err.message);
+        toast.error(err.message);
+        console.error("postOrder ApiError payload:", err.payload);
+        console.error("postOrder ApiError raw:", (err as any).raw ?? null);
+        // Also log the outgoing payload for easier server-side correlation
+        try {
+          console.error("Outgoing payload:", JSON.stringify(payload, null, 2));
+        } catch (e) {
+          console.error("Outgoing payload (could not stringify)", payload);
+        }
+      } else {
+        const msg = err?.message || "Failed to place order";
+        setApiError(msg);
+        toast.error(msg);
+        console.error("postOrder error:", err);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -109,6 +148,11 @@ export function CheckoutPage() {
             {/* Checkout Form */}
             <div className="lg:col-span-2">
               <form onSubmit={handleSubmit} className="space-y-6">
+                {apiError && (
+                  <div className="rounded-md bg-red-50 p-3 text-red-700">
+                    {apiError}
+                  </div>
+                )}
                 {/* Delivery Type */}
                 <Card className="p-6">
                   <h3 className="mb-4">Delivery Method</h3>
@@ -262,7 +306,7 @@ export function CheckoutPage() {
                   size="lg"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Placing order..." : `Place Order - $${total.toFixed(2)}`}
+                  {isSubmitting ? "Placing order..." : `Place Order - ${total.toFixed(2)}`}
                 </Button>
               </form>
             </div>
@@ -318,3 +362,4 @@ export function CheckoutPage() {
     </div>
   );
 }
+
